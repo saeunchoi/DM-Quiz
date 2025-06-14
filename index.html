@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Modeling 퀴즈</title>
+    <style>
+        /* CSS는 변경 없음 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            min-height: 500px;
+            position: relative;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+
+        .module-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .module-btn {
+            padding: 12px 24px;
+            width: 80%;
+            max-width: 400px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .module-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .module-btn.active {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+        }
+        
+        .quiz-container {
+            display: none;
+        }
+        
+        .quiz-container.active {
+            display: block;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .question-counter {
+            background: #f0f0f0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .question {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid #2196F3;
+        }
+        
+        .question h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .options {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .option {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+        
+        .option:hover {
+            border-color: #2196F3;
+            background: #f0f8ff;
+        }
+        
+        .option.selected {
+            border-color: #2196F3;
+            background: #e3f2fd;
+        }
+        
+        .option.correct {
+            border-color: #4CAF50;
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .option.incorrect {
+            border-color: #f44336;
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .explanation {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #ff9800;
+            display: none;
+        }
+        
+        .explanation.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .explanation h4 {
+            color: #e65100;
+            margin-bottom: 10px;
+        }
+        
+        .explanation p {
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .next-btn {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .next-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .results {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .results h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        
+        .score {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .score.excellent { color: #4CAF50; }
+        .score.good { color: #2196F3; }
+        .score.average { color: #ff9800; }
+        .score.poor { color: #f44336; }
+        
+        .restart-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .intro {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .intro h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .intro p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Data Modeling 퀴즈</h1>
+        </div>
+        
+        <div class="intro" id="intro">
+            <h2>모듈을 선택하여 퀴즈를 시작하세요</h2>
+            <p>각 모듈별로 문제가 출제되며, 문제를 풀자마자 정답과 상세 해설이 표시됩니다.</p>
+        </div>
+        
+        <div class="module-selector">
+            <button class="module-btn" onclick="startQuiz('module1', event)">Module 1: 데이터 설계의 중요성</button>
+            <button class="module-btn" onclick="startQuiz('module2', event)">Module 2: 데이터, DB 개요</button>
+            <button class="module-btn" onclick="startQuiz('module3', event)">Module 3: 데이터 표준화</button>
+            <button class="module-btn" onclick="startQuiz('module4', event)">Module 4: 논리 데이터 모델링</button>
+            <button class="module-btn" onclick="startQuiz('module5', event)">Module 5: 정규화 및 상관 모델링</button>
+            <button class="module-btn" onclick="startQuiz('module6', event)">Module 6: 물리 데이터 모델링</button>
+            <button class="module-btn" onclick="startQuiz('module7', event)">Module 7: 데이터 품질 및 전환</button>
+        </div>
+        
+        <div class="quiz-container" id="quiz-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            
+            <div class="question-header">
+                <div class="question-counter">
+                    <span id="current-question">1</span> / <span id="total-questions">10</span>
+                </div>
+            </div>
+            
+            <div class="question" id="question-container">
+            </div>
+            
+            <button class="next-btn" id="next-btn" onclick="nextQuestion()" disabled>다음 문제</button>
+        </div>
+        
+        <div class="results" id="results" style="display: none;">
+        </div>
+    </div>
+
+    <script>
+        // ✨ 수정된 부분: 제공된 자료를 기반으로 새로운 퀴즈 데이터 생성
+        const quizData = {
+            module1: [
+                {
+                    question: "다음 중 데이터 관리의 4가지 핵심 원칙에 해당하지 않는 것은?",
+                    options: [
+                        "데이터는 가치 있는 자산으로 관리되어야 한다.",
+                        "데이터의 효율성은 전사 관점에서 관리되어야 한다.",
+                        "데이터는 지속적으로 관리되어야 한다.",
+                        "데이터는 특정 부서에 의해서만 독점적으로 관리되어야 한다."
+                    ],
+                    correct: 3,
+                    explanation: "데이터는 특정 부서에 독점되는 것이 아니라, '다양한 채널을 통해 활용 및 공유되어야 한다'는 원칙을 가집니다.  따라서 4번은 핵심 원칙에 해당하지 않습니다."
+                },
+                {
+                    question: "A사의 데이터 표준화 추진 목적으로 거리가 먼 것은?",
+                    options: [
+                        "전사 조직 간 표준 용어 통용으로 커뮤니케이션 오류 최소화",
+                        "동일 포맷 데이터 사용으로 정합성 및 시스템 연동 용이성 확보",
+                        "개별 부서의 자율적인 표준화 수행 권장",
+                        "정확한 데이터 구조 정의를 통한 데이터 품질 확보"
+                    ],
+                    correct: 2,
+                    explanation: "A사의 데이터 표준화 목적 중 하나는 '전사 데이터 표준 관리 체계를 기반으로 전사적 표준 관리 활동으로 개별적인 표준화 수행 부담 최소화'입니다.  개별적이고 자율적인 표준화는 지양해야 할 대상입니다."
+                },
+                {
+                    question: "A사가 데이터 표준화를 위해 정의한 Framework에 포함되지 않는 관리 영역은?",
+                    options: [
+                        "데이터 구조 관리",
+                        "데이터 흐름 관리",
+                        "데이터 품질 관리",
+                        "인사 조직 관리"
+                    ],
+                    correct: 3,
+                    explanation: "A사는 데이터 표준 관리를 위해 데이터 구조 관리, 데이터 흐름 관리, 데이터 품질 관리, 데이터 활용 관리 영역을 포함하는 Framework를 도출했습니다.  인사 조직 관리는 이 Framework에 포함되지 않습니다."
+                },
+                {
+                    question: "A사가 데이터 정의 표준화 미흡 문제에 대한 개선 방안으로 제시한 것이 아닌 것은?",
+                    options: [
+                        "전사 공유 데이터에 대한 일치된 데이터 값 정의 및 공유",
+                        "사용자에게 데이터의 정확한 의미 제공",
+                        "각 시스템별로 독립적인 데이터 관리 조직 구축",
+                        "전사 공통 데이터 생성 및 활용 원칙과 프로세스 정의"
+                    ],
+                    correct: 2,
+                    explanation: "A사는 데이터 정의 표준화 미흡 문제의 개선 방안으로 '전사 표준 제공/관리 조직 구축'과 '전사 표준 생성/활용 조직 정의'를 제시했으며, 이는 독립적인 조직 구축과 반대되는 중앙 집중적 관리 체계를 의미합니다. "
+                }
+            ],
+            module2: [
+                {
+                    question: "데이터, 정보, 지식, 지혜의 계층적 관계에 대한 설명으로 가장 올바른 것은?",
+                    options: [
+                        "정보가 축적되면 데이터가 된다.",
+                        "지식이란 현실 세계에서 수집된 단순한 사실이나 값이다.",
+                        "데이터가 의미 있는 패턴으로 정리되면 정보가 된다.",
+                        "지혜는 동종의 정보를 일반화하여 정리한 것이다."
+                    ],
+                    correct: 2,
+                    explanation: "자료에 따르면 '데이터가 의미 있는 패턴으로 정리되면 정보가 됨'이라고 설명하고 있습니다.  데이터는 가장 기본적인 사실이며, 이것이 가공되어 정보가 됩니다."
+                },
+                {
+                    question: "과거 파일 시스템의 문제점으로 지적된 것이 아닌 것은?",
+                    options: [
+                        "데이터 독립성 보장 미흡",
+                        "데이터 일관성 및 무결성 보장 문제",
+                        "높은 데이터 공유성 및 사용 편의성",
+                        "특정 응용 프로그램에 데이터가 종속되는 문제"
+                    ],
+                    correct: 2,
+                    explanation: "파일 시스템의 문제점으로는 '공유성, 사용 편의성 저조'가 지적되었습니다.  따라서 높은 공유성과 편의성은 파일 시스템의 특징이 아닙니다."
+                },
+                {
+                    question: "데이터베이스의 4가지 핵심 정의 요소에 포함되지 않는 것은?",
+                    options: [
+                        "통합된 데이터 (Integrated)",
+                        "저장된 데이터 (Stored)",
+                        "분산된 데이터 (Distributed)",
+                        "공용 데이터 (Shared)"
+                    ],
+                    correct: 2,
+                    explanation: "데이터베이스의 핵심 정의 요소는 통합된 데이터, 저장된 데이터, 운영 데이터, 공용 데이터입니다.  '분산된 데이터'는 데이터베이스의 특성일 수는 있으나 핵심 정의 요소는 아닙니다."
+                },
+                {
+                    question: "3단계 데이터베이스 구조(ANSI/SPARC 모델)의 주된 목적은 무엇인가?",
+                    options: [
+                        "데이터 처리 속도 향상",
+                        "물리적 저장 공간 최소화",
+                        "데이터의 독립성 보장",
+                        "데이터베이스 사용자 권한 제어"
+                    ],
+                    correct: 2,
+                    explanation: "3단계 데이터베이스 구조의 주 목적은 'DB에 대한 사용자의 View와 DB가 실제 표현되는 View를 분리하여 변경 간섭을 줄이는 것'으로, 이는 데이터의 독립성을 보장하기 위함입니다. "
+                }
+            ],
+            module3: [
+                {
+                    question: "데이터 표준화의 구성 항목 중, '업무에서 빈번하게 사용되는 단어를 조합하고 도메인으로 끝나도록 정의'된 것은 무엇인가?",
+                    options: [
+                        "단어",
+                        "표준용어",
+                        "도메인",
+                        "데이터 타입"
+                    ],
+                    correct: 1,
+                    explanation: "표준용어는 '업무에서 빈번하게 사용되는 단어를 조합하고 도메인(의 분류어)으로 끝나도록 정의'됩니다. "
+                },
+                {
+                    question: "데이터 표준화 과정에서 '하나의 단어가 여러 의미로 사용되는 문제'인 동음이의어 문제를 해결하기 위한 방안으로 적절하지 않은 것은?",
+                    options: [
+                        "동의어가 있으면 동의어를 사용하여 중의적 사용을 방지한다.",
+                        "의미가 명확해지도록 복합 단어로 등록한다.",
+                        "가장 자주 사용되는 의미 하나만 표준으로 인정하고 나머지는 사용을 금지한다.",
+                        "의미에 따라 '화폐'와 '전화통화'처럼 단어를 구분하여 사용한다."
+                    ],
+                    correct: 2,
+                    explanation: "동음이의어 문제 해결 방안으로는 동의어 사용 또는 복합 단어 등록이 제시되었습니다.  특정 의미의 사용을 일방적으로 금지하는 것은 해결 방안으로 언급되지 않았습니다."
+                },
+                {
+                    question: "코드나 번호 도메인을 '코드_V5', '번호_N10'처럼 일반화하여 사용할 때 발생하는 가장 큰 문제점은?",
+                    options: [
+                        "개발 속도가 현저히 느려진다.",
+                        "데이터 저장 공간이 과도하게 낭비된다.",
+                        "데이터 정합성 및 참조 무결성 검증이 어려워 품질 관리가 힘들어진다.",
+                        "사용자가 데이터의 의미를 파악하기 쉬워진다."
+                    ],
+                    correct: 2,
+                    explanation: "일반화된 코드/번호 도메인을 사용하면 데이터 정합성 및 참조 무결성 검증이 어려워 데이터 품질 관리가 힘들어지는 문제가 발생합니다. "
+                },
+                {
+                    question: "공공 데이터 표준의 법적 근거로 옳은 것은?",
+                    options: [
+                        "개인정보보호법",
+                        "소프트웨어산업 진흥법",
+                        "공공데이터의 제공 및 이용 활성화에 관한 법률",
+                        "정보통신망 이용촉진 및 정보보호 등에 관한 법률"
+                    ],
+                    correct: 2,
+                    explanation: "공공 데이터 표준은 '공공데이터의 제공 및 이용 활성화에 관한 법률 제 23조' 및 관련 행정안전부고시에 근거합니다. "
+                }
+            ],
+            module4: [
+                {
+                    question: "논리 데이터 모델의 주요 구성 요소 중, '조직에서 관심을 가지는 기능 또는 주요 토픽에 대한 엔터티의 그룹'을 무엇이라고 하는가?",
+                    options: [
+                        "엔터티 (Entity)",
+                        "속성 (Attribute)",
+                        "주제 영역 (Subject Area)",
+                        "관계 (Relationship)"
+                    ],
+                    correct: 2,
+                    explanation: "주제 영역은 '데이터에 대한 상위 수준의 분류로, 조직에서 관심을 가지는 기능 또는 주요 토픽에 대한 엔터티의 그룹'으로 정의됩니다. "
+                },
+                {
+                    question: "엔터티(Entity) 명명 규칙으로 옳지 않은 것은?",
+                    options: [
+                        "현업에서 사용하는 용어를 사용한다.",
+                        "가능한 약어를 사용하여 길이를 줄인다.",
+                        "단수 명사를 사용한다.",
+                        "엔터티 간 유일성을 유지하도록 명명한다."
+                    ],
+                    correct: 1,
+                    explanation: "엔터티 명명 규칙 중 하나는 '약어 지양'입니다.  의미가 명확하게 전달되도록 약어 사용을 피해야 합니다."
+                },
+                {
+                    question: "두 개 이상의 엔터티에 의존적이며, 주로 M:N 관계를 해소할 때 나타나는 엔터티 유형은 무엇인가?",
+                    options: [
+                        "중심 엔터티",
+                        "독립 엔터티",
+                        "특성 엔터티",
+                        "연관 엔터티"
+                    ],
+                    correct: 3,
+                    explanation: "연관 엔터티는 두 개 이상 엔터티에 의존적이며, M:N 관계 해소 시 주로 나타납니다. "
+                },
+                {
+                    question: "엔터티 내에서 각 발생(Occurrence)을 유일하게 구분할 수 있는 구분자를 무엇이라고 하는가?",
+                    options: [
+                        "속성 (Attribute)",
+                        "도메인 (Domain)",
+                        "식별자 (Identifier)",
+                        "관계 (Relationship)"
+                    ],
+                    correct: 2,
+                    explanation: "식별자는 '엔터티 내에서 각 Occurrence를 구분할 수 있는 구분자'로 정의됩니다. "
+                },
+                {
+                    question: "다른 속성에 의해 계산되거나 영향을 받아 생성되는 속성의 유형은 무엇인가?",
+                    options: [
+                        "기본 속성 (Basic)",
+                        "설계 속성 (Designed)",
+                        "파생 속성 (Derived)",
+                        "내부 속성 (Internal)"
+                    ],
+                    correct: 2,
+                    explanation: "파생 속성은 '다른 속성에 의해 계산되거나 영향을 받아 생성된 속성'입니다. (예: 금액총합, 이자) "
+                }
+            ],
+            module5: [
+                {
+                    question: "데이터 정규화의 주된 목적으로 가장 적절한 것은?",
+                    options: [
+                        "데이터 조회 속도 향상",
+                        "입력, 수정, 삭제 시 발생하는 이상 현상(Anomaly) 제거",
+                        "데이터 저장 공간의 극대화",
+                        "물리적 테이블 구조의 단순화"
+                    ],
+                    correct: 1,
+                    explanation: "정규화는 데이터 처리 시 발생하는 입력, 수정, 삭제의 이상 현상을 제거하고 데이터 중복을 최소화하여 데이터 모델을 개선하는 절차입니다. "
+                },
+                {
+                    question: "1차 정규화(1NF)의 핵심 원칙은 무엇인가?",
+                    options: [
+                        "이행 함수 종속 제거",
+                        "부분 함수 종속 제거",
+                        "테이블의 모든 컬럼이 원자값(Atomic Value)을 갖도록 하는 것",
+                        "다치 종속성 제거"
+                    ],
+                    correct: 2,
+                    explanation: "1차 정규화의 원칙은 '테이블 하나의 컬럼에는 여러 개의 데이터 값이 반복되어 나타나지 않아야 함'으로, 주식별자에 대해 원자속성을 확보하는 것이 핵심입니다. "
+                },
+                {
+                    question: "식별자가 아닌 일반 속성에 종속적인 속성을 별도의 엔터티로 분리하는 정규화 단계는 무엇인가?",
+                    options: [
+                        "1차 정규화 (1NF)",
+                        "2차 정규화 (2NF)",
+                        "3차 정규화 (3NF)",
+                        "보이스코드 정규화 (BCNF)"
+                    ],
+                    correct: 2,
+                    explanation: "3차 정규화는 이행 함수 종속을 제거하는 단계로, '식별자가 아닌 일반 속성에 종속적인 속성을 별도의 엔터티로 분리'하는 것을 원칙으로 합니다. "
+                },
+                {
+                    question: "CRUD 매트릭스 분석 결과, 특정 엔터티에 C(Create) 액션이 한 번도 발생하지 않았다면 무엇을 의심해야 하는가?",
+                    options: [
+                        "해당 엔터티는 불필요하므로 즉시 삭제해야 한다.",
+                        "해당 엔터티를 등록하는 단위 프로세스가 누락되었다.",
+                        "해당 엔터티의 조회(Read) 기능에 문제가 있다.",
+                        "해당 엔터티의 데이터가 너무 많다."
+                    ],
+                    correct: 1,
+                    explanation: "CRUD 매트릭스 분석 시 엔터티에 C 액션이 한 번도 발생하지 않는 경우는 해당 엔터티를 생성하는 등록 프로세스가 누락되었을 가능성을 의미합니다. "
+                }
+            ],
+            module6: [
+                {
+                    question: "논리 데이터 모델을 물리 데이터 모델로 전환하는 주된 목적이 아닌 것은?",
+                    options: [
+                        "시스템 성능 향상 고려",
+                        "실제 테이블 생성을 위한 사전 준비",
+                        "특정 DBMS에 종속되지 않는 범용적 모델 설계",
+                        "반정규화, 이력 테이블 등 물리적 기법 적용"
+                    ],
+                    correct: 2,
+                    explanation: "물리 데이터 모델링은 논리 모델을 실제 시스템 구축 환경(특정 DBMS)에 맞게 전환하는 작업입니다.  따라서 특정 DBMS에 종속되지 않는 것은 논리 모델의 특징입니다."
+                },
+                {
+                    question: "데이터 모델의 반정규화(Denormalization)를 수행하는 가장 주된 이유는 무엇인가?",
+                    options: [
+                        "데이터 입력 및 수정 성능 향상",
+                        "데이터의 무결성 강화",
+                        "데이터 조회 성능 향상",
+                        "데이터 모델의 구조적 단순화"
+                    ],
+                    correct: 2,
+                    explanation: "반정규화는 정규화된 모델을 통합하는 프로세스로, 주로 시스템의 '조회 성능을 향상시키는 데 기여'합니다. "
+                },
+                {
+                    question: "슈퍼타입-서브타입 모델을 하나의 통합 테이블(Rollup)로 전환하는 것이 유리한 경우는?",
+                    options: [
+                        "서브타입별 고유 속성이 매우 많을 때",
+                        "서브타입별 업무가 완전히 독립적일 때",
+                        "슈퍼타입과 서브타입을 동시에 조회하는 경우가 거의 없을 때",
+                        "서브타입별 고유 속성이 적을 때"
+                    ],
+                    correct: 3,
+                    explanation: "통합 테이블로 변환하는 방식(Rollup)은 '서브타입별 고유 속성이 적을 때' 조인이 없어 성능에 유리하고 엔터티 수가 감소하는 장점이 있습니다. "
+                },
+                {
+                    question: "물리 모델링에서 이력 데이터를 관리하는 유형 중, 특정 시점의 정보를 완벽하게 재현할 수 있지만 이력 테이블의 크기가 커지고 데이터 중복이 발생하는 단점이 있는 유형은?",
+                    options: [
+                        "하나의 테이블에서 정보와 이력 모두 관리",
+                        "원본 테이블 정보 전체를 별도 분리하여 이력 관리",
+                        "기본 정보와 변경된 이력 정보만 분리하여 관리",
+                        "변경 항목별로 전/후 데이터만 관리"
+                    ],
+                    correct: 1,
+                    explanation: "'원본 테이블 정보 전체를 별도 분리하여 이력 관리'하는 유형은 특정 시점 정보 재현이 가능하지만, 이력 테이블 크기 증가 및 중복 데이터 존재라는 단점이 있습니다. "
+                }
+            ],
+            module7: [
+                {
+                    question: "데이터 품질 관리의 중요성이 부각된 배경으로 거리가 먼 것은?",
+                    options: [
+                        "정보시스템 간 심각한 데이터 중복과 불일치 문제",
+                        "정보시스템 규모 확대 및 복잡도 증가",
+                        "하드웨어 및 소프트웨어 기술의 발전",
+                        "CRM 구축 시 고객 데이터의 일관성 유지 필요성"
+                    ],
+                    correct: 2,
+                    explanation: "데이터 품질 관리의 중요성은 데이터의 중복성, 불일치성 문제, 시스템의 복잡도 증가, CRM과 같은 데이터 기반 시스템의 필요성 때문에 대두되었습니다.  하드웨어/소프트웨어의 발전은 오히려 데이터 품질 문제 해결을 돕는 요소입니다."
+                },
+                {
+                    question: "데이터 품질 관리 방법론 5단계의 올바른 순서는?",
+                    options: [
+                        "계획 → 측정 → 정의 → 분석 → 개선",
+                        "정의 → 계획 → 측정 → 개선 → 분석",
+                        "계획 → 정의 → 측정 → 분석 → 개선",
+                        "정의 → 측정 → 분석 → 계획 → 개선"
+                    ],
+                    correct: 2,
+                    explanation: "데이터 품질 관리 방법론은 계획(Plan), 정의(Define), 측정(Measure), 분석(Analyze), 개선(Improve)의 5단계 순서로 진행됩니다. "
+                },
+                {
+                    question: "데이터 품질 기준(DQI) 중, '필수 칼럼에 값의 누락이 없어야 한다'는 기준은 무엇에 해당하는가?",
+                    options: [
+                        "완전성 (Completeness)",
+                        "유효성 (Validity)",
+                        "정확성 (Accuracy)",
+                        "유일성 (Uniqueness)"
+                    ],
+                    correct: 0,
+                    explanation: "완전성은 개별 완전성과 조건 완전성으로 나뉘며, '개별 완전성'은 필수 칼럼에 값의 누락이 없어야 함을 의미합니다. "
+                },
+                {
+                    question: "데이터 전환(Data Migration)의 정의로 가장 올바른 것은?",
+                    options: [
+                        "AS-IS 시스템의 데이터를 백업하는 과정",
+                        "AS-IS 시스템의 데이터를 정해진 규칙과 기간 내에 TO-BE 시스템으로 이전하여 정상 운영되도록 하는 과정",
+                        "TO-BE 시스템의 새로운 데이터를 생성하는 과정",
+                        "AS-IS와 TO-BE 시스템의 성능을 비교 분석하는 과정"
+                    ],
+                    correct: 1,
+                    explanation: "데이터 전환은 'AS-IS 시스템의 데이터를 정해진 규칙, 기간 및 시간 내에 정확히 TO-BE 시스템으로 이전하여 정상적인 운영이 될 수 있도록 하는 일련의 과정'으로 정의됩니다. "
+                }
+            ]
+        };
+
+        let currentModule = '';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let selectedAnswer = null;
+        let answered = false;
+        
+        function startQuiz(moduleId, event) {
+            currentModule = moduleId;
+            currentQuestionIndex = 0;
+            score = 0;
+            selectedAnswer = null;
+            answered = false;
+
+            document.getElementById('intro').style.display = 'none';
+            document.getElementById('quiz-container').classList.add('active');
+            document.getElementById('results').style.display = 'none';
+            
+            document.querySelectorAll('.module-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateQuestion();
+        }
+
+        function updateQuestion() {
+            const questions = quizData[currentModule];
+            if (!questions) {
+                console.error(`'${currentModule}'에 해당하는 퀴즈 데이터가 없습니다.`);
+                alert("퀴즈 데이터를 불러오는 데 실패했습니다. 다시 시도해주세요.");
+                restartQuiz();
+                return;
+            }
+            const question = questions[currentQuestionIndex];
+            
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            document.getElementById('total-questions').textContent = questions.length;
+            
+            const questionContainer = document.getElementById('question-container');
+            questionContainer.innerHTML = `
+                <h3>${question.question}</h3>
+                <div class="options">
+                    ${question.options.map((option, index) => `
+                        <div class="option" onclick="selectAnswer(${index})">${option}</div>
+                    `).join('')}
+                </div>
+                <div class="explanation" id="explanation">
+                    <h4>💡 정답 및 해설</h4>
+                    <p><strong>정답:</strong> ${question.options[question.correct]}</p>
+                    <p><strong>해설:</strong> ${question.explanation}</p>
+                </div>
+            `;
+            
+            document.getElementById('next-btn').disabled = true;
+            document.getElementById('next-btn').textContent = '다음 문제';
+            answered = false;
+        }
+
+        function selectAnswer(index) {
+            if (answered) return;
+            
+            selectedAnswer = index;
+            answered = true;
+            
+            const questions = quizData[currentModule];
+            const question = questions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach(option => option.style.pointerEvents = 'none');
+            
+            options[question.correct].classList.add('correct');
+            if (selectedAnswer !== question.correct) {
+                options[selectedAnswer].classList.add('incorrect');
+            } else {
+                score++;
+            }
+            
+            document.getElementById('explanation').classList.add('show');
+            
+            document.getElementById('next-btn').disabled = false;
+            
+            if (currentQuestionIndex === questions.length - 1) {
+                document.getElementById('next-btn').textContent = '결과 보기';
+            }
+        }
+
+        function nextQuestion() {
+            const questions = quizData[currentModule];
+            
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                updateQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const questions = quizData[currentModule];
+            const percentage = Math.round((score / questions.length) * 100);
+            
+            let grade, gradeClass, message;
+            if (percentage >= 90) {
+                grade = '우수!';
+                gradeClass = 'excellent';
+                message = '훌륭합니다! 데이터 모델링 지식이 매우 뛰어나시네요! 🎉';
+            } else if (percentage >= 70) {
+                grade = '양호!';
+                gradeClass = 'good';
+                message = '잘 하셨습니다! 좋은 지식을 가지고 계시네요! 👍';
+            } else if (percentage >= 50) {
+                grade = '보통';
+                gradeClass = 'average';
+                message = '괜찮습니다! 조금 더 학습하시면 더 좋을 것 같아요! 📚';
+            } else {
+                grade = '개선 필요';
+                gradeClass = 'poor';
+                message = '더 열심히 공부해보세요! 화이팅! 💪';
+            }
+            
+            const moduleTitles = {
+                'module1': '데이터 설계의 중요성',
+                'module2': '데이터, DB 개요',
+                'module3': '데이터 표준화',
+                'module4': '논리 데이터 모델링',
+                'module5': '정규화 및 상관 모델링',
+                'module6': '물리 데이터 모델링',
+                'module7': '데이터 품질 및 전환'
+            };
+            const moduleName = moduleTitles[currentModule] || '퀴즈';
+            
+            document.getElementById('quiz-container').classList.remove('active');
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').innerHTML = `
+                <h2>🎯 퀴즈 완료!</h2>
+                <p><strong>${moduleName}</strong> 모듈 결과</p>
+                <div class="score ${gradeClass}">${score}/${questions.length}</div>
+                <p><strong>${percentage}% (${grade})</strong></p>
+                <p>${message}</p>
+                <button class="restart-btn" onclick="restartQuiz()">다시 시작</button>
+            `;
+        }
+
+        function restartQuiz() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('intro').style.display = 'block';
+            document.getElementById('quiz-container').classList.remove('active');
+            document.querySelectorAll('.module-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('next-btn').textContent = '다음 문제';
+        }
+    </script>
+</body>
+</html>
